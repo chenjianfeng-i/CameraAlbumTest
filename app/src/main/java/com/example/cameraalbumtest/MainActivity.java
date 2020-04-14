@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         chooseFromAlbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // 动态申请读取和修改SD卡的权限：WRITE_EXTERNAL_STORAGE
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openAlbum(){
+        // 打开相册
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setType("image/*");
         startActivityForResult(intent, CHOOSE_PHOTO);
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         if (DocumentsContract.isDocumentUri(this, uri)){
             // 如果是document类型的Uri，则通过document id处理
             String docId = DocumentsContract.getDocumentId(uri);
+            // 如果Uri的authority是media格式的话，document id还需要再进行一次解析，要通过字符串分割的方式取出后半部分才能得到真正的数字
             if ("com.android.providers.media.documents".equals(uri.getAuthority())){
                 String id = docId.split(":")[1];
                 String selection = MediaStore.Images.Media._ID+"="+id;
@@ -124,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String getImagePath(Uri uri, String selection){
         String path = null;
-        //
+        // 通过Uri和selection来获取真实的图片路径
         Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
         if (cursor != null){
             if (cursor.moveToFirst()){
@@ -175,9 +178,12 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case CHOOSE_PHOTO:
                 if (resultCode == RESULT_OK){
+                    // 判断手机系统版本号
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+                        // 4.4及以上系统使用这个方法处理图片
                         handleImageOnKitKat(data);
                     } else {
+                        // 4.4以下系统使用这个方法处理图片
                         handleImageBeforeKitKat(data);
                     }
                 }
